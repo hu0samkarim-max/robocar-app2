@@ -1,0 +1,599 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+
+  .phone-shell {
+    width: 360px;
+    min-height: 720px;
+    background: #0d1117;
+    border-radius: 40px;
+    margin: 1.5rem auto;
+    border: 2px solid #2a2a3a;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 0 6px #1a1a2a;
+  }
+
+  .status-bar {
+    background: #0d1117;
+    padding: 10px 20px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #888;
+  }
+
+  .top-bar {
+    background: #111827;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid #1e293b;
+  }
+
+  .top-bar .car-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #f1f5f9;
+    letter-spacing: 0.5px;
+  }
+
+  .bt-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .bt-connected { background: #0f3d2b; color: #34d399; border: 0.5px solid #065f46; }
+  .bt-disconnected { background: #3b1a1a; color: #f87171; border: 0.5px solid #7f1d1d; }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-green { background: #34d399; }
+  .dot-red { background: #f87171; }
+
+  .content { padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Battery card */
+  .battery-card {
+    background: #111827;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 0.5px solid #1e293b;
+  }
+
+  .bat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .bat-label { font-size: 12px; color: #64748b; }
+  .bat-pct { font-size: 22px; font-weight: 500; color: #f1f5f9; }
+  .bat-sub { font-size: 11px; color: #64748b; }
+
+  .bat-bar-bg {
+    height: 8px;
+    background: #1e293b;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bat-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s;
+  }
+
+  .bat-high { background: #34d399; }
+  .bat-mid { background: #fbbf24; }
+  .bat-low { background: #f87171; }
+
+  /* Mode selector */
+  .mode-card {
+    background: #111827;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 0.5px solid #1e293b;
+  }
+
+  .section-label { font-size: 11px; color: #475569; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+
+  .mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .mode-btn {
+    padding: 9px 4px;
+    border-radius: 10px;
+    border: 0.5px solid #1e293b;
+    background: #0d1117;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mode-btn i { font-size: 18px; }
+
+  .mode-btn.active {
+    background: #1e3a5f;
+    color: #60a5fa;
+    border-color: #2563eb;
+  }
+
+  /* Control area */
+  .control-card {
+    background: #111827;
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 0.5px solid #1e293b;
+  }
+
+  .dpad-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 48px);
+    grid-template-rows: repeat(3, 48px);
+    gap: 4px;
+  }
+
+  .dpad-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #1a2235;
+    border: 0.5px solid #1e3a5f;
+    color: #60a5fa;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s, transform 0.1s;
+    user-select: none;
+  }
+
+  .dpad-btn:active, .dpad-btn.pressed { background: #2563eb; transform: scale(0.93); }
+  .dpad-center { background: #0d1117; border-color: #1e293b; color: #334155; font-size: 12px; }
+  .dpad-empty { visibility: hidden; }
+
+  .speed-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .speed-label { font-size: 11px; color: #475569; }
+  .speed-val { font-size: 20px; font-weight: 500; color: #f1f5f9; }
+
+  .speed-btns { display: flex; flex-direction: column; gap: 4px; }
+
+  .spd-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #1a2235;
+    border: 0.5px solid #1e3a5f;
+    color: #60a5fa;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spd-btn:active { background: #2563eb; }
+
+  .speed-track {
+    width: 6px;
+    height: 80px;
+    background: #1e293b;
+    border-radius: 999px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .speed-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    border-radius: 999px;
+    background: #3b82f6;
+    transition: height 0.2s;
+  }
+
+  /* Sensor row */
+  .sensor-card {
+    background: #111827;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 0.5px solid #1e293b;
+  }
+
+  .sensor-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .sensor-cell {
+    background: #0d1117;
+    border-radius: 10px;
+    padding: 8px 10px;
+    border: 0.5px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .sensor-cell i { font-size: 16px; color: #38bdf8; }
+  .sensor-name { font-size: 10px; color: #475569; }
+  .sensor-dist { font-size: 14px; font-weight: 500; color: #f1f5f9; }
+  .sensor-unit { font-size: 9px; color: #475569; }
+
+  /* Parking card */
+  .parking-card {
+    background: #111827;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 0.5px solid #1e293b;
+  }
+
+  .parking-phases {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .phase-item {
+    flex: 1;
+    text-align: center;
+    font-size: 10px;
+    color: #475569;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .phase-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #334155;
+    background: #0d1117;
+    transition: all 0.3s;
+  }
+
+  .phase-dot.done { background: #0f3d2b; border-color: #065f46; color: #34d399; }
+  .phase-dot.active { background: #1e3a5f; border-color: #2563eb; color: #60a5fa; }
+
+  .phase-line {
+    width: 12px;
+    height: 1.5px;
+    background: #1e293b;
+    margin-top: -14px;
+    flex-shrink: 0;
+  }
+
+  /* Log */
+  .log-card {
+    background: #0d1117;
+    border-radius: 14px;
+    padding: 10px 14px;
+    border: 0.5px solid #1e293b;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #64748b;
+    min-height: 52px;
+  }
+
+  .log-line { line-height: 1.7; }
+  .log-ok { color: #34d399; }
+  .log-warn { color: #fbbf24; }
+  .log-info { color: #60a5fa; }
+
+  .hidden { display: none !important; }
+</style>
+
+<h2 class="sr-only">Smart RoboCar Flutter App Prototype — interactive mobile UI mockup showing Bluetooth connection, mode switching, D-pad controls, battery monitor, and sensor readings</h2>
+
+<div class="phone-shell">
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>RoboCar v1.0</span>
+    <span><i class="ti ti-wifi" style="font-size:12px"></i> 5G</span>
+  </div>
+
+  <div class="top-bar">
+    <span class="car-name"><i class="ti ti-robot" style="font-size:16px; vertical-align:-2px; margin-right:5px" aria-hidden="true"></i>RoboCar 01</span>
+    <div id="bt-badge" class="bt-badge bt-disconnected" style="cursor:pointer" onclick="toggleBT()">
+      <div class="dot dot-red" id="bt-dot"></div>
+      <span id="bt-text">Disconnected</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Battery -->
+    <div class="battery-card">
+      <div class="bat-row">
+        <div>
+          <div class="bat-label"><i class="ti ti-battery-2" style="font-size:12px; vertical-align:-1px" aria-hidden="true"></i> Battery</div>
+          <div class="bat-pct" id="bat-pct">78%</div>
+        </div>
+        <div style="text-align:right">
+          <div class="bat-sub">7.6 V</div>
+          <div class="bat-sub" style="color:#34d399; margin-top:2px">Normal</div>
+        </div>
+      </div>
+      <div class="bat-bar-bg">
+        <div class="bat-bar-fill bat-high" id="bat-fill" style="width:78%"></div>
+      </div>
+    </div>
+
+    <!-- Mode -->
+    <div class="mode-card">
+      <div class="section-label">Operating Mode</div>
+      <div class="mode-tabs">
+        <button class="mode-btn active" id="btn-manual" onclick="setMode('manual')">
+          <i class="ti ti-steering-wheel" aria-hidden="true"></i>
+          Manual
+        </button>
+        <button class="mode-btn" id="btn-auto" onclick="setMode('auto')">
+          <i class="ti ti-car" aria-hidden="true"></i>
+          Autonomous
+        </button>
+        <button class="mode-btn" id="btn-park" onclick="setMode('park')">
+          <i class="ti ti-parking" aria-hidden="true"></i>
+          Auto-Park
+        </button>
+      </div>
+    </div>
+
+    <!-- D-pad controls (only visible in Manual mode) -->
+    <div class="control-card" id="manual-controls">
+      <div class="section-label">Drive Control</div>
+      <div class="dpad-wrapper">
+        <div class="dpad">
+          <div class="dpad-empty"></div>
+          <button class="dpad-btn" id="btn-fwd" onmousedown="pressDir('F')" onmouseup="releaseDir()" onmouseleave="releaseDir()" ontouchstart="pressDir('F')" ontouchend="releaseDir()" aria-label="Forward"><i class="ti ti-chevron-up" aria-hidden="true"></i></button>
+          <div class="dpad-empty"></div>
+          <button class="dpad-btn" id="btn-left" onmousedown="pressDir('L')" onmouseup="releaseDir()" onmouseleave="releaseDir()" ontouchstart="pressDir('L')" ontouchend="releaseDir()" aria-label="Left"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+          <div class="dpad-btn dpad-center" id="dir-indicator">—</div>
+          <button class="dpad-btn" id="btn-right" onmousedown="pressDir('R')" onmouseup="releaseDir()" onmouseleave="releaseDir()" ontouchstart="pressDir('R')" ontouchend="releaseDir()" aria-label="Right"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+          <div class="dpad-empty"></div>
+          <button class="dpad-btn" id="btn-bwd" onmousedown="pressDir('B')" onmouseup="releaseDir()" onmouseleave="releaseDir()" ontouchstart="pressDir('B')" ontouchend="releaseDir()" aria-label="Backward"><i class="ti ti-chevron-down" aria-hidden="true"></i></button>
+          <div class="dpad-empty"></div>
+        </div>
+
+        <div class="speed-panel">
+          <div class="speed-label">Speed</div>
+          <button class="spd-btn" onclick="changeSpeed(1)" aria-label="Increase speed"><i class="ti ti-plus" aria-hidden="true"></i></button>
+          <div class="speed-track">
+            <div class="speed-fill" id="speed-fill" style="height:44%"></div>
+          </div>
+          <button class="spd-btn" onclick="changeSpeed(-1)" aria-label="Decrease speed"><i class="ti ti-minus" aria-hidden="true"></i></button>
+          <div class="speed-val" id="speed-val">4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Autonomous info -->
+    <div class="control-card hidden" id="auto-controls">
+      <div class="section-label">Autonomous Navigation</div>
+      <div style="display:flex; align-items:center; gap:10px; padding: 8px 0;">
+        <div style="width:36px; height:36px; border-radius:50%; background:#0f3d2b; border:1.5px solid #065f46; display:flex; align-items:center; justify-content:center;">
+          <i class="ti ti-wave-sine" style="font-size:16px; color:#34d399" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div style="font-size:13px; font-weight:500; color:#f1f5f9">Active — obstacle avoidance on</div>
+          <div style="font-size:11px; color:#64748b">Scanning with front ultrasonic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-park phases -->
+    <div class="parking-card hidden" id="park-controls">
+      <div class="section-label">Parking Sequence</div>
+      <div class="parking-phases" id="park-phases">
+        <div class="phase-item">
+          <div class="phase-dot" id="p0"><i class="ti ti-scan" style="font-size:13px" aria-hidden="true"></i></div>
+          <span>Scan</span>
+        </div>
+        <div class="phase-line"></div>
+        <div class="phase-item">
+          <div class="phase-dot" id="p1"><i class="ti ti-arrow-narrow-right" style="font-size:13px" aria-hidden="true"></i></div>
+          <span>Approach</span>
+        </div>
+        <div class="phase-line"></div>
+        <div class="phase-item">
+          <div class="phase-dot" id="p2"><i class="ti ti-rotate-clockwise" style="font-size:13px" aria-hidden="true"></i></div>
+          <span>Maneuver</span>
+        </div>
+        <div class="phase-line"></div>
+        <div class="phase-item">
+          <div class="phase-dot" id="p3"><i class="ti ti-check" style="font-size:13px" aria-hidden="true"></i></div>
+          <span>Done</span>
+        </div>
+      </div>
+      <button onclick="runParkingDemo()" style="margin-top:12px; width:100%; padding:9px; border-radius:10px; background:#1a2235; border:0.5px solid #1e3a5f; color:#60a5fa; font-size:12px; cursor:pointer;">
+        <i class="ti ti-player-play" aria-hidden="true"></i> Simulate Parking Sequence
+      </button>
+    </div>
+
+    <!-- Sensor data -->
+    <div class="sensor-card">
+      <div class="section-label">Ultrasonic Sensors (cm)</div>
+      <div class="sensor-row">
+        <div class="sensor-cell">
+          <i class="ti ti-arrows-left-right" aria-hidden="true"></i>
+          <div class="sensor-name">Left</div>
+          <div class="sensor-dist" id="sns-l">80</div>
+          <div class="sensor-unit">cm</div>
+        </div>
+        <div class="sensor-cell">
+          <i class="ti ti-arrow-up" aria-hidden="true"></i>
+          <div class="sensor-name">Front</div>
+          <div class="sensor-dist" id="sns-f">45</div>
+          <div class="sensor-unit">cm</div>
+        </div>
+        <div class="sensor-cell">
+          <i class="ti ti-arrows-left-right" aria-hidden="true"></i>
+          <div class="sensor-name">Right</div>
+          <div class="sensor-dist" id="sns-r">75</div>
+          <div class="sensor-unit">cm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Serial log -->
+    <div class="log-card" id="log-card">
+      <div class="log-line log-info">&gt; Waiting for Bluetooth connection...</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let connected = false;
+  let currentMode = 'manual';
+  let speed = 4;
+  let currentDir = null;
+  let sensorInterval = null;
+  let parkPhase = -1;
+  let parkTimer = null;
+
+  function toggleBT() {
+    connected = !connected;
+    const badge = document.getElementById('bt-badge');
+    const dot = document.getElementById('bt-dot');
+    const txt = document.getElementById('bt-text');
+    if (connected) {
+      badge.className = 'bt-badge bt-connected';
+      dot.className = 'dot dot-green';
+      txt.textContent = 'HC-05 Connected';
+      addLog('info', 'Bluetooth paired — HC-05 @ /dev/rfcomm0');
+      addLog('ok', 'BAT:78 received');
+      startSensors();
+    } else {
+      badge.className = 'bt-badge bt-disconnected';
+      dot.className = 'dot dot-red';
+      txt.textContent = 'Disconnected';
+      addLog('warn', 'Connection lost');
+      stopSensors();
+    }
+  }
+
+  function setMode(m) {
+    currentMode = m;
+    ['manual','auto','park'].forEach(id => {
+      document.getElementById('btn-' + id).classList.toggle('active', id === m);
+    });
+    document.getElementById('manual-controls').classList.toggle('hidden', m !== 'manual');
+    document.getElementById('auto-controls').classList.toggle('hidden', m !== 'auto');
+    document.getElementById('park-controls').classList.toggle('hidden', m !== 'park');
+    const cmds = { manual: 'MODE:M', auto: 'MODE:A', park: 'MODE:P' };
+    addLog('info', 'TX → ' + cmds[m]);
+  }
+
+  function pressDir(d) {
+    if (!connected) { addLog('warn', 'Not connected'); return; }
+    const labels = { F:'Forward', B:'Backward', L:'Left', R:'Right' };
+    const icons = { F:'↑', B:'↓', L:'←', R:'→' };
+    currentDir = d;
+    document.getElementById('dir-indicator').textContent = icons[d];
+    ['fwd','bwd','left','right'].forEach(id => document.getElementById('btn-' + id).classList.remove('pressed'));
+    const map = { F:'fwd', B:'bwd', L:'left', R:'right' };
+    document.getElementById('btn-' + map[d]).classList.add('pressed');
+    addLog('info', 'TX → ' + d + speed);
+  }
+
+  function releaseDir() {
+    if (!currentDir) return;
+    currentDir = null;
+    document.getElementById('dir-indicator').textContent = '■';
+    ['fwd','bwd','left','right'].forEach(id => document.getElementById('btn-' + id).classList.remove('pressed'));
+    if (connected) addLog('info', 'TX → S0');
+  }
+
+  function changeSpeed(delta) {
+    speed = Math.min(9, Math.max(1, speed + delta));
+    document.getElementById('speed-val').textContent = speed;
+    document.getElementById('speed-fill').style.height = (speed / 9 * 100) + '%';
+    if (connected) addLog('info', 'TX → SPD:' + speed);
+  }
+
+  function addLog(type, msg) {
+    const log = document.getElementById('log-card');
+    const cls = type === 'ok' ? 'log-ok' : type === 'warn' ? 'log-warn' : 'log-info';
+    const lines = log.querySelectorAll('.log-line');
+    if (lines.length >= 3) lines[0].remove();
+    const el = document.createElement('div');
+    el.className = 'log-line ' + cls;
+    el.textContent = '> ' + msg;
+    log.appendChild(el);
+  }
+
+  function startSensors() {
+    sensorInterval = setInterval(() => {
+      if (!connected) return;
+      const f = Math.round(20 + Math.random() * 100);
+      const l = Math.round(30 + Math.random() * 120);
+      const r = Math.round(30 + Math.random() * 120);
+      document.getElementById('sns-f').textContent = f;
+      document.getElementById('sns-l').textContent = l;
+      document.getElementById('sns-r').textContent = r;
+      if (f < 25) {
+        document.getElementById('sns-f').style.color = '#f87171';
+        if (currentMode === 'auto') addLog('warn', 'Obstacle! ' + f + 'cm — turning');
+      } else {
+        document.getElementById('sns-f').style.color = '#f1f5f9';
+      }
+    }, 1800);
+  }
+
+  function stopSensors() {
+    clearInterval(sensorInterval);
+  }
+
+  function runParkingDemo() {
+    if (parkTimer) return;
+    parkPhase = 0;
+    const phases = ['p0','p1','p2','p3'];
+    phases.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+    });
+    const msgs = ['Scanning for slot...','Approaching slot...','Executing maneuver...','Parked!'];
+    function step() {
+      if (parkPhase > 0) document.getElementById(phases[parkPhase - 1]).classList.replace('active','done');
+      if (parkPhase >= phases.length) { parkTimer = null; addLog('ok', 'Parking complete'); return; }
+      document.getElementById(phases[parkPhase]).classList.add('active');
+      addLog('info', msgs[parkPhase]);
+      parkPhase++;
+      parkTimer = setTimeout(step, 1400);
+    }
+    step();
+  }
+</script>
