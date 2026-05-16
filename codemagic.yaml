@@ -5,13 +5,21 @@ workflows:
     environment:
       flutter: 3.24.5
       java: 17
+ 
     scripts:
+      - name: Create Flutter project structure
+        script: |
+          flutter create --project-name robocar_controller --org com.example --platforms android .
+ 
       - name: Get Flutter packages
         script: flutter pub get
+ 
       - name: Build APK
         script: flutter build apk --release
+ 
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
+ 
     publishing:
       email:
         recipients:
