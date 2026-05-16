@@ -1,0 +1,25 @@
+workflows:
+  android-release:
+    name: RoboCar Android Build
+    max_build_duration: 60
+    environment:
+      flutter: 3.24.5
+      java: 17
+
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Build APK
+        script: flutter build apk --release
+
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+
+    publishing:
+      email:
+        recipients:
+          -elhussein.720240080@gmail.com
+        notify:
+          success: true
+          failure: true
